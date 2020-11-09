@@ -34,7 +34,7 @@ def load_data(database_filepath):
     #Y = df.iloc[:, 1:]
 
     X = df.iloc[:,1]
-    Y = df.iloc[:, 4:]
+    Y = df.iloc[:,4:]
     category_names = Y.columns.tolist()
     print(X.shape, Y.shape)
 
@@ -64,13 +64,14 @@ def build_model():
     pipeline = Pipeline(
         [("vect", CountVectorizer(tokenizer=tokenize)),
          ('tfidf', TfidfTransformer()),
-         ("clf", MultiOutputClassifier(RandomForestClassifier()))
+         ("clf", MultiOutputClassifier(RandomForestClassifier(), n_jobs=-1))
          ])
 
     parameters = {
-        'clf__estimator__min_samples_split': [2],
+        'clf__estimator__min_samples_split': [2, 4, 6],
         'clf__estimator__min_samples_split': [100, 500, 1000],
         'clf__estimator__n_estimators': [10, 50, 100]
+
 
     }
 
@@ -81,9 +82,14 @@ def build_model():
 
 def evaluate_model(model, X_test, Y_test, category_names):
     Y_pred = model.predict(X_test)
-    global result
-    result = classification_report(Y_test, Y_pred)
-    pd.DataFrame(classification_report(Y_test, Y_pred)).to_excel("classification_score.xls")
+    #global result
+    #result = classification_report(Y_test, Y_pred)
+    try:
+        pd.DataFrame(classification_report(Y_test, Y_pred, output_dict=True)).to_csv("classification_score.csv")
+        pd.DataFrame(model.cv_results_).to_csv("CV_results.csv")
+    except:
+        pd.DataFrame(model.cv_results_).to_csv("CV_results.csv")
+
 
     return
 

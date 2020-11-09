@@ -8,9 +8,9 @@
 {% endblock %}
 
 {% block content %}
-    <div class="col-sm-6" >
+    <div class="col-sm-3" >
     <h1 class="text-center">Result</h1>
-        <ul class="list-group">
+        <ul class="list-group ">
             {% for category, classification in classification_result.items() %}
                 {% if classification == 1 %}
                     <li class="list-group-item list-group-item-success text-center">{{category.replace('_', ' ').title()}}</li>
@@ -21,14 +21,79 @@
 
         </ul>
     </div>
-<div class="col-sm-6"  >
+<div class="col-sm-6 col-sm-offset-2" >
         <h1 class="text-center">Model Score</h1>
-        <ul class="list-group">
-            <li class="list-group-item text-center"> F1 Score: </li>
-            <li class="list-group-item text-center"> Recall Score: </li>
-            <li class="list-group-item text-center"> Precision Score: </li>
+        <ul class="col-sm-6 col-sm-offset-6">
+
+            <form action="/go" method="get">
+                <button type="submit" name="test" value="overall" class="btn btn-primary">Overall</button>
+
+
+                <button type="submit" name="test" value="details" class="btn btn-primary">Details</button>
+            </form>
 
         </ul>
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th> </th>
+                {% for scorer in scorers[:-1] %}
+
+                <th> {{scorer}}</th>
+
+                {% endfor %}
+
+            </tr>
+        </thead>
+        <tbody>
+        {% if test =="overall" %}
+
+                {% for value in scores_vals_labels %}
+            <tr>
+                <td> {{value[0]}}</td>
+                <td> {{"{:.2f}".format(value[1])}}</td>
+                <td> {{"{:.2f}".format(value[2])}}</td>
+                <td> {{"{:.2f}".format(value[3])}}</td>
+            </tr>
+
+
+                {% endfor %}
+
+        {% else %}
+
+                {% for label, values in classification_result.items() %}
+
+                    {% if classification_result[label] == 1 %}
+            <tr class="success">
+                <td> {{label}}</td>
+                <td> {{values}}</td>
+                <td> {{values}}</td>
+                <td> {{values}}</td>
+
+            </tr>
+                    {% else%}
+            <tr >
+                <td> {{label}}</td>
+                <td> {{values}}</td>
+                <td> {{values}}</td>
+                <td> {{values}}</td>
+
+            </tr>
+
+
+                    {% endif%}
+                {% endfor %}
+
+
+        {% endif %}
+
+        </tbody>
+
+    </table>
+
+
 
 
 

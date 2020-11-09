@@ -1,6 +1,8 @@
 import json
 import plotly
 import pandas as pd
+import numpy as np
+
 
 from models.train_classifier import evaluate_model
 from nltk.stem import WordNetLemmatizer
@@ -33,11 +35,17 @@ engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('disaster_messages', engine)
 
 # load model
-model = joblib.load("../models/classifier.pk")
+model = joblib.load("../models/classifier.pkl")
 
+#load evaluation_scores
 
+scores = pd.read_csv("/Users/nassimgharbi/Documents/Udacity-Data-Science_Nano/Week-3_Data_Engineering/disaster_response_pipeline_project/classification_score.csv").transpose()
+scorers = scores.loc["Unnamed: 0",:].to_list()
+scores_vals = np.array(scores.drop("Unnamed: 0", axis=0)).reshape(-1,4)
+scores_vals_labels = np.array(scores[-4:].reset_index())
 
-cols = ["medical_help", "offer", "search_and_rescue"]
+cols = df.columns[4:]
+
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
@@ -88,21 +96,25 @@ def index():
 @app.route('/go')
 def go():
     # save user input in query
-    query = request.args.get('query', '') 
+    query = request.args.get('query', '')
+    test = request.args.get('test', "")
 
     # use model to predict classification for query
     classification_labels = model.predict([query])[0]
 
-    #classification_results = dict(zip(df.columns[4:], classification_labels))
-    classification_results = dict(zip(cols, classification_labels))
+    classification_result = dict(zip(df.columns[4:], classification_labels))
+    #classification_results = dict(zip(cols, classification_labels))
+    print(classification_result)
 
-
-    print(classification_labels)
-    # This will render the go.html Please see that file. 
+    # This will render the go.html Please see that file.
     return render_template(
         'go.html',
         query=query,
-        classification_result=classification_results
+        classification_result=classification_result,
+        scorers = scorers,
+        scores_vals = scores_vals,
+        scores_vals_labels = scores_vals_labels,
+        test = test
     )
 
 
