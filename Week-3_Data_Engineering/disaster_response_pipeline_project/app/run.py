@@ -4,10 +4,8 @@ import pandas as pd
 import numpy as np
 
 
-from models.train_classifier import evaluate_model
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
-
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
@@ -20,6 +18,12 @@ app = Flask(__name__)
 
 
 def tokenize(text):
+    """
+    Takes input takes and returns clean tokens for classification.
+
+    :param text: input text
+    :return: cleaned tokens of input
+    """
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
@@ -44,41 +48,39 @@ scorers = scores.loc["Unnamed: 0",:].to_list()
 scores_vals = np.array(scores.drop("Unnamed: 0", axis=0)).reshape(-1,4)
 scores_vals_labels = np.array(scores[-4:].reset_index())
 
+
 cols = df.columns[4:]
+
+
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
 def index():
     
-    # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
-    genre_names = list(genre_counts.index)
 
-    x = df[cols].columns.tolist()
-    y = df[cols].sum()
+    category = df[cols].columns.tolist()
+    counts = df[cols].sum()
 
 
 
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
                 Bar(
-                    x=x,
-                    y=y
+                    x=category,
+                    y=counts
                 )
             ],
 
             'layout': {
-                'title': 'Distribution of Message Genres',
+                'title': 'Distribution of Message Categories',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Counts"
                 },
                 'xaxis': {
-                    'title': "Genre"
+                    'title': "Category"
                 }
             }
         }
@@ -97,14 +99,13 @@ def index():
 def go():
     # save user input in query
     query = request.args.get('query', '')
-    test = request.args.get('test', "")
+    table = request.args.get('table', "")
 
     # use model to predict classification for query
     classification_labels = model.predict([query])[0]
 
-    classification_result = dict(zip(df.columns[4:], classification_labels))
-    #classification_results = dict(zip(cols, classification_labels))
-    print(classification_result)
+    classification_result = dict(zip(cols, classification_labels))
+    scoring_results = dict(zip(cols, scores_vals))
 
     # This will render the go.html Please see that file.
     return render_template(
@@ -112,9 +113,9 @@ def go():
         query=query,
         classification_result=classification_result,
         scorers = scorers,
-        scores_vals = scores_vals,
+        scoring_results = scoring_results,
         scores_vals_labels = scores_vals_labels,
-        test = test
+        table = table
     )
 
 

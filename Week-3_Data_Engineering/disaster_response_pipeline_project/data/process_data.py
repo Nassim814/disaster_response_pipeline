@@ -4,6 +4,14 @@ from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
+    """
+    Loads and merges source files.
+
+
+    :param messages_filepath: location of messages (csv)
+    :param categories_filepath: location of categoreis (csv)
+    :return: merged pandas dataframe
+    """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = messages.merge(categories, on="id", how="outer")
@@ -12,6 +20,14 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
+    """
+    Takes the dataframe and transforms the data into X and Y for ml pipeline.
+
+    :param df: raw dataframe
+    :return: transformed dataframe
+    """
+
+    #create and transform category columns
     categories = df["categories"].str.split(";", expand=True)
     category_colnames = categories.iloc[0, :].apply(lambda x: x[:-2])
     categories.columns = category_colnames
@@ -23,14 +39,26 @@ def clean_data(df):
         # convert column from string to numeric
         categories[column] = pd.to_numeric(categories[column])
 
+    #drop original column and duplicates
     df = df.drop("categories", axis=1)
     df = pd.concat([df, categories], axis=1, join='outer')
     df = df.drop_duplicates()
+
+    #drop non-binary values
+    df = df.drop(index=df["related"][df["related"] == 2].index)
 
     return df
 
 
 def save_data(df, database_filename):
+    """
+    Saves dataframe to a local sql database
+
+
+    :param df: transformed dataframe
+    :param database_filename: location and name of database
+    :return:
+    """
     engine = create_engine('sqlite:///' + str(database_filename), encoding='utf8')
     df.to_sql('disaster_messages', engine, index=False, if_exists="replace")
 
@@ -38,6 +66,11 @@ def save_data(df, database_filename):
 
 
 def main():
+    """
+    Runs functions above in subsequent order
+
+    :return:
+    """
     if len(sys.argv) == 4:
 
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]

@@ -26,10 +26,10 @@
         <ul class="col-sm-6 col-sm-offset-6">
 
             <form action="/go" method="get">
-                <button type="submit" name="test" value="overall" class="btn btn-primary">Overall</button>
+                <button type="submit" name="table" value="overall" class="btn btn-primary">Overall</button>
 
 
-                <button type="submit" name="test" value="details" class="btn btn-primary">Details</button>
+                <button type="submit" name="table" value="details" class="btn btn-primary">Details</button>
             </form>
 
         </ul>
@@ -48,7 +48,7 @@
             </tr>
         </thead>
         <tbody>
-        {% if test =="overall" %}
+        {% if table =="overall" %}
 
                 {% for value in scores_vals_labels %}
             <tr>
@@ -63,22 +63,22 @@
 
         {% else %}
 
-                {% for label, values in classification_result.items() %}
+                {% for key, values in scoring_results.items() %}
 
-                    {% if classification_result[label] == 1 %}
+                    {% if classification_result[key] == 1 %}
             <tr class="success">
-                <td> {{label}}</td>
-                <td> {{values}}</td>
-                <td> {{values}}</td>
-                <td> {{values}}</td>
+                <td> {{key}}</td>
+                <td> {{"{:.2f}".format(values[0])}}</td>
+                <td> {{"{:.2f}".format(values[1])}}</td>
+                <td> {{"{:.2f}".format(values[2])}}</td>
 
             </tr>
                     {% else%}
             <tr >
-                <td> {{label}}</td>
-                <td> {{values}}</td>
-                <td> {{values}}</td>
-                <td> {{values}}</td>
+                <td> {{key}}</td>
+                <td> {{"{:.2f}".format(values[0])}}</td>
+                <td> {{"{:.2f}".format(values[1])}}</td>
+                <td> {{"{:.2f}".format(values[2])}}</td>
 
             </tr>
 
